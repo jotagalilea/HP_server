@@ -80,6 +80,7 @@ public class Server {
 			User newUser = new User(userName, new InetSocketAddress(packet.getAddress(), packet.getPort()));
 			if (!users.contains(newUser))
 				users.add(newUser);
+			ay
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
