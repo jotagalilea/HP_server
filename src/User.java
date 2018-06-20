@@ -17,12 +17,6 @@ public class User {
 		this.name = name;
 		this.address = addr;
 	}
-	
-	
-	public boolean existsUser(){
-		
-	}
-
 
 
 	@Override

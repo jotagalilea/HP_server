@@ -20,10 +20,6 @@ public class Server {
 	private final int listenPort = 61516;
 	private ArrayList<Connection> activeConnections;
 	private ArrayList<User> users;
-	/**
-	 * Longitud máxima del buffer de datos que se manejará.
-	 */
-	private static final int MAX_BUFF_SIZE = 1024;
 	
 	
 	
@@ -67,20 +63,42 @@ public class Server {
 	
 	
 	private void listen() {
-		byte[] buffer = new byte[MAX_BUFF_SIZE];
+		byte[] buffer = new byte[Utils.MAX_BUFF_SIZE];
 		DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
 		try {
 			listenSocket.receive(packet);
+			// TODO: REVISAR ESTE COMENTARIO, puede que no sea necesario enviar el número de bytes del nombre.
 			/* Cuando un usuario comienza una conexión al servidor SIEMPRE debe enviar su identificador
 			 * (en el caso de nuestra app se envía simplemente el nombre de usuario) y el número de bytes
 			 * que ocupa. Este número de bytes están en buffer[0].
 			 */
-			byte nameLen = buffer[0];
-			String userName = new String(buffer).substring(1, nameLen+1);
-			User newUser = new User(userName, new InetSocketAddress(packet.getAddress(), packet.getPort()));
-			if (!users.contains(newUser))
-				users.add(newUser);
-			ay
+			
+			// TODO: Habrá que distinguir qué tipo de conexión hace el cliente.
+			byte requestType = buffer[0];
+			switch (buffer[0]){
+			case Utils.SERVER_CONNECT:
+				// Registro del usuario en el Servidor en memoria.
+				byte nameLen = buffer[1];
+				String userName = new String(buffer).substring(1, nameLen+1);
+				User newUser = new User(userName, new InetSocketAddress(packet.getAddress(), packet.getPort()));
+				if (!users.contains(newUser))
+					users.add(newUser);
+				break;
+				
+			// 
+			case Utils.HELLO:
+				break;
+			// Si los pares son amigos se crea un objeto Connection.
+			case Utils.HELLO_FRIEND:
+				break;
+			// Si no son amigos 
+			case Utils.NO_FRIEND:
+				break;
+			// Si es una petición se pasa al destino tal cual.
+			default:
+				break;
+			}
+			
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
