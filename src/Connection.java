@@ -7,11 +7,11 @@
 
 public class Connection {
 
-	private User client;
-	private User servant;
+	private String client;
+	private String servant;
 	
 	
-	public Connection(User c, User s){
+	public Connection(String c, String s){
 		this.client = c;
 		this.servant = s;
 	}
