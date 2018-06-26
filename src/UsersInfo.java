@@ -73,7 +73,17 @@ public class UsersInfo {
 	}
 	
 	
-	
+	/**
+	 * Devuelve la dirección y el puerto del usuario con nombre user.
+	 * 
+	 * @param user
+	 * @return
+	 */
+	// TODO: Leer:
+	/* pensar cómo puedo solucionar el timeout para obtener la info correcta de un
+	 * usuario destino que se conectó hace tiempo. Debo evitar que la info del móvil
+	 * de destino en su tabla NAT se pierda por TIMEOUT. Quizá podría hacer ping todo el rato.
+	 */
 	public Pair<InetAddress, Integer> getUserInfo(String user){
 		if (!this.existsUserWithName(user))
 			return null;

@@ -1,3 +1,4 @@
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -93,31 +94,56 @@ public class Server {
 					String friendName = new String(buffer).substring(2, 2+friendNameLen);
 					// Se comprueba si el usuario destino está conectado con su nombre:
 					if (usersInfo.existsUserWithName(friendName)){
-						// En caso afirmativo se pasa el paquete a su destino.
-						Pair<InetAddress, Integer> info = usersInfo.getUserInfo(friendName);
+						/* En caso afirmativo:
+						 * 1- Se avisa al origen y se pasa IP+puerto (externos) del destino.
+						 * 2- Se pasa IP+puerto (externos) del destino al origen.
+						 *    Ambos pasos se realizan para que se comuniquen origen y destino
+						 *    de forma directa entre ellos.
+						 */
+						// IP+puerto del destino se manda al origen.
+						Pair<InetAddress, Integer> destInfo = usersInfo.getUserInfo(friendName);
+						ByteArrayOutputStream baos = new ByteArrayOutputStream();
+						baos.write(destInfo.first.toString().getBytes());
+						baos.write(Utils.intToByteArray(destInfo.second));
+						byte[] info_for_origin = baos.toByteArray();
+						DatagramPacket to_origin = new DatagramPacket(info_for_origin, info_for_origin.length,
+								packet.getAddress(), packet.getPort());
+						outSocket.send(to_origin);
+						
+						// IP+puerto del origen se manda al destino.
+						ByteArrayOutputStream baos2 = new ByteArrayOutputStream();
+						baos2.write(packet.getAddress().toString().getBytes());
+						baos2.write(Utils.intToByteArray(packet.getPort()));
+						byte[] info_for_destination = baos2.toByteArray();
+						DatagramPacket to_destination = new DatagramPacket(info_for_destination,
+								info_for_destination.length, destInfo.first, destInfo.second);
+						outSocket.send(to_destination);
+						
+						
+						/*Pair<InetAddress, Integer> info = usersInfo.getUserInfo(friendName);
 						DatagramPacket outPack = new DatagramPacket(buffer, buffer.length, info.first, info.second);
-						outSocket.send(outPack);
+						outSocket.send(outPack);*/
 					}
 					else{
-						// Si no se devuelve respuesta negativa al origen con NO_FRIEND.
+						// Si no, se devuelve respuesta negativa al origen con NO_FRIEND.
 						byte[] refuseBuff = {Utils.NO_FRIEND};
-						DatagramPacket p = new DatagramPacket(refuseBuff, refuseBuff.length, packet.getAddress(), packet.getPort());
+						DatagramPacket p = new DatagramPacket(refuseBuff, refuseBuff.length,
+								packet.getAddress(), packet.getPort());
 						outSocket.send(p);
 					}
 					break;
 					
 				// Si los pares son amigos se crea un objeto Connection.
 				case Utils.HELLO_FRIEND:
-					
 					break;
 				// Si no son amigos:
 				case Utils.NO_FRIEND:
 					break;
-				// Si es una petición se pasa al destino tal cual.
+				/* Si es una petición se pasa al destino tal cual, O BIEN podría hacer que se comunicaran
+				 * sin pasar más por el servidor, por lo que:
+				 */// TODO: el caso default podría sobrar.
 				default:
 					break;
-					// Primero se comprueba que existe un objeto Connection creado previamente.
-					
 				}
 				
 			} catch (IOException e) {
