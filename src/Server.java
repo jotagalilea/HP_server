@@ -18,7 +18,9 @@ public class Server {
 	
 	private static Server server = null;
 	private DatagramSocket listenSocket;
+	private DatagramSocket outSocket;
 	private final int listenPort = 61516;
+	
 	private ArrayList<Connection> activeConnections;
 	private UsersInfo usersInfo;
 	
@@ -37,6 +39,8 @@ public class Server {
 		try {
 			listenSocket = new DatagramSocket(listenPort);
 			listenSocket.setReuseAddress(true);
+			outSocket = new DatagramSocket();
+			outSocket.setReuseAddress(true);
 			// TODO: ¿También se necesita una cola de espera? ¿O lanzo todos los hilos que se puedan?
 			//TODO: Necesito un hilo que espere a conexiones entrantes.
 			/* POR DEFECTO, TODOS LOS USUARIOS QUE SE CONECTAN SON SIRVIENTES, ya que
@@ -50,19 +54,13 @@ public class Server {
 				}
 			}).start();
 			
-			/* Pasos a seguir cuando un usuario se conecta:
-			 * 
-			 * 1º Comprobar si existe en el servidor. Si no existe añadirlo a la colección de usuarios.
-			 * 2º 
-			 * 
-			 */			
 		} catch (SocketException e) {
 			e.printStackTrace();
 		}
 	}
 	
 	
-	
+	// TODO: Debería haber varios hilos ejecutando listen para atender varias peticiones a la vez.
 	private void listen() {
 		while (true){
 			byte[] buffer = new byte[Utils.MAX_BUFF_SIZE];
@@ -77,7 +75,7 @@ public class Server {
 				
 				// TODO: Habrá que distinguir qué tipo de conexión hace el cliente.
 				byte requestType = buffer[0];
-				switch (buffer[0]){
+				switch (requestType){
 				case Utils.SERVER_CONNECT:
 					// Registro del usuario en el Servidor en memoria.
 					byte nameLen = buffer[1];
@@ -85,8 +83,6 @@ public class Server {
 					//User newUser = new User(userName, packet.getAddress(), packet.getPort());
 					if (!usersInfo.existsUserWithName(userName))
 						usersInfo.addUser(userName, packet.getAddress(), packet.getPort());
-					// TODO: SEGUIR POR AQUÍ
-					
 					break;
 					
 				/* Saludo a un dispositivo. Si está en la lista de usuarios conectados al servidor se pasará
@@ -96,17 +92,28 @@ public class Server {
 					byte friendNameLen = buffer[1];
 					String friendName = new String(buffer).substring(2, 2+friendNameLen);
 					// Se comprueba si el usuario destino está conectado con su nombre:
-					// Se necesita recorrer el treeSet en log(n).
-					
-					
+					if (usersInfo.existsUserWithName(friendName)){
+						// En caso afirmativo se pasa el paquete a su destino.
+						Pair<InetAddress, Integer> info = usersInfo.getUserInfo(friendName);
+						DatagramPacket outPack = new DatagramPacket(buffer, buffer.length, info.first, info.second);
+						outSocket.send(outPack);
+					}
+					else{
+						// Si no se devuelve respuesta negativa al origen con NO_FRIEND.
+						byte[] refuseBuff = {Utils.NO_FRIEND};
+						DatagramPacket p = new DatagramPacket(refuseBuff, refuseBuff.length, packet.getAddress(), packet.getPort());
+						outSocket.send(p);
+					}
 					break;
+					
 				// Si los pares son amigos se crea un objeto Connection.
 				case Utils.HELLO_FRIEND:
+					
 					break;
 				// Si no son amigos 
 				case Utils.NO_FRIEND:
 					break;
-				// Si es una petición o un HELLO se pasa al destino tal cual.
+				// Si es una petición se pasa al destino tal cual.
 				default:
 					break;
 				}

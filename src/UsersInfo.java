@@ -71,6 +71,14 @@ public class UsersInfo {
 	public boolean existsUserWithName(String name){
 		return this.usersMap.containsKey(name);
 	}
+	
+	
+	
+	public Pair<InetAddress, Integer> getUserInfo(String user){
+		if (!this.existsUserWithName(user))
+			return null;
+		return this.usersMap.get(user);
+	}
 
 
 	@Override

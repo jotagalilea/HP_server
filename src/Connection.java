@@ -1,3 +1,7 @@
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.net.SocketException;
+
 /**
  * Created by Julio on 02/06/2018.
  *
@@ -8,17 +12,30 @@
 public class Connection {
 
 	private String client;
+	private DatagramSocket clientSocket;
+	private InetAddress clientAddr;
+	private int clientPort;
+	
 	private String servant;
+	private DatagramSocket servantSocket;
+	private InetAddress servantAddr;
+	private int servantPort;
+	
+	private byte[] mainBuffer;
 	
 	
 	public Connection(String c, String s){
-		this.client = c;
-		this.servant = s;
-	}
-	
-	
-	public boolean existsConection(){
-		
+		try {
+			this.mainBuffer = new byte[Utils.MAX_BUFF_SIZE];
+			this.client = c;
+			this.servant = s;
+			this.clientSocket = new DatagramSocket();
+			
+			// TODO: sin terminar.
+			
+		} catch (SocketException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	
