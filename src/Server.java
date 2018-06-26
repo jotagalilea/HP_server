@@ -74,8 +74,8 @@ public class Server {
 				 */
 				
 				// TODO: Habrá que distinguir qué tipo de conexión hace el cliente.
-				byte requestType = buffer[0];
-				switch (requestType){
+				byte type = buffer[0];
+				switch (type){
 				case Utils.SERVER_CONNECT:
 					// Registro del usuario en el Servidor en memoria.
 					byte nameLen = buffer[1];
@@ -110,12 +110,14 @@ public class Server {
 				case Utils.HELLO_FRIEND:
 					
 					break;
-				// Si no son amigos 
+				// Si no son amigos:
 				case Utils.NO_FRIEND:
 					break;
 				// Si es una petición se pasa al destino tal cual.
 				default:
 					break;
+					// Primero se comprueba que existe un objeto Connection creado previamente.
+					
 				}
 				
 			} catch (IOException e) {
@@ -125,8 +127,8 @@ public class Server {
 	}
 	
 	
-	private void createConnection(User client, User servant){
-		Connection
+	private void createConnection(String client, String servant){
+		
 		//crear socket
 	}
 	
