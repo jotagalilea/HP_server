@@ -103,8 +103,13 @@ public class Server {
 						// IP+puerto del destino se manda al origen.
 						Pair<InetAddress, Integer> destInfo = usersInfo.getUserInfo(friendName);
 						ByteArrayOutputStream baos = new ByteArrayOutputStream();
-						baos.write(destInfo.first.toString().getBytes());
-						baos.write(Utils.intToByteArray(destInfo.second));
+						// TODO: OJO!!! falta poner bien la IP en 4 BYTES!!!! Aquí y para el destino.
+						byte[] friendIP = destInfo.first.toString().getBytes();
+						byte[] friendPort = Utils.intToByteArray(destInfo.second);
+						//byte[] IP_size = { (byte) friendIP.length };
+						//baos.write(IP_size);
+						baos.write(friendIP); //IP
+						baos.write(friendPort);//Puerto
 						byte[] info_for_origin = baos.toByteArray();
 						DatagramPacket to_origin = new DatagramPacket(info_for_origin, info_for_origin.length,
 								packet.getAddress(), packet.getPort());
@@ -112,13 +117,13 @@ public class Server {
 						
 						// IP+puerto del origen se manda al destino.
 						ByteArrayOutputStream baos2 = new ByteArrayOutputStream();
+						// TODO: falta poner la IP en 4 BYTES!!!
 						baos2.write(packet.getAddress().toString().getBytes());
 						baos2.write(Utils.intToByteArray(packet.getPort()));
 						byte[] info_for_destination = baos2.toByteArray();
 						DatagramPacket to_destination = new DatagramPacket(info_for_destination,
 								info_for_destination.length, destInfo.first, destInfo.second);
 						outSocket.send(to_destination);
-						
 						
 						/*Pair<InetAddress, Integer> info = usersInfo.getUserInfo(friendName);
 						DatagramPacket outPack = new DatagramPacket(buffer, buffer.length, info.first, info.second);
