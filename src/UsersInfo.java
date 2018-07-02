@@ -89,8 +89,20 @@ public class UsersInfo {
 			return null;
 		return this.usersMap.get(user);
 	}
-
-
+	
+	
+	
+	/**
+	 * Método que cargará de la base de datos los usuarios que se hayan conectado anteriormente.
+	 * 
+	 * En caso de que la base de datos esté vacía no hará nada.
+	 */
+	public void loadUsers(){
+		// TODO
+	}
+	
+	
+	
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj)

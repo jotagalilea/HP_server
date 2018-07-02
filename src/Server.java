@@ -80,14 +80,15 @@ public class Server {
 				case Utils.SERVER_CONNECT:
 					// Registro del usuario en el Servidor en memoria.
 					byte nameLen = buffer[1];
-					String userName = new String(buffer).substring(1, nameLen+1);
+					String userName = new String(buffer).substring(2, 2+nameLen);
 					//User newUser = new User(userName, packet.getAddress(), packet.getPort());
 					if (!usersInfo.existsUserWithName(userName))
 						usersInfo.addUser(userName, packet.getAddress(), packet.getPort());
 					break;
 					
-				/* Saludo a un dispositivo. Si está en la lista de usuarios conectados al servidor se pasará
-				 * el paquete tal cual al dispositivo de destino, si no se devolverá NO_FRIEND.
+				/* Saludo a un dispositivo. Si está en la lista de usuarios conectados al servidor se pasarán
+				 * a cada uno la dirección y el puerto usados por el contrario para el futuro intercambio, si no
+				 * se devolverá al origen NO_FRIEND.
 				 */
 				case Utils.HELLO:
 					byte friendNameLen = buffer[1];
@@ -103,13 +104,10 @@ public class Server {
 						// IP+puerto del destino se manda al origen.
 						Pair<InetAddress, Integer> destInfo = usersInfo.getUserInfo(friendName);
 						ByteArrayOutputStream baos = new ByteArrayOutputStream();
-						// TODO: OJO!!! falta poner bien la IP en 4 BYTES!!!! Aquí y para el destino.
-						byte[] friendIP = destInfo.first.toString().getBytes();
+						byte[] friendIP = destInfo.first.getAddress();
 						byte[] friendPort = Utils.intToByteArray(destInfo.second);
-						//byte[] IP_size = { (byte) friendIP.length };
-						//baos.write(IP_size);
-						baos.write(friendIP); //IP
-						baos.write(friendPort);//Puerto
+						baos.write(friendIP);
+						baos.write(friendPort);
 						byte[] info_for_origin = baos.toByteArray();
 						DatagramPacket to_origin = new DatagramPacket(info_for_origin, info_for_origin.length,
 								packet.getAddress(), packet.getPort());
@@ -117,8 +115,7 @@ public class Server {
 						
 						// IP+puerto del origen se manda al destino.
 						ByteArrayOutputStream baos2 = new ByteArrayOutputStream();
-						// TODO: falta poner la IP en 4 BYTES!!!
-						baos2.write(packet.getAddress().toString().getBytes());
+						baos2.write(packet.getAddress().getAddress());
 						baos2.write(Utils.intToByteArray(packet.getPort()));
 						byte[] info_for_destination = baos2.toByteArray();
 						DatagramPacket to_destination = new DatagramPacket(info_for_destination,
@@ -137,23 +134,23 @@ public class Server {
 						outSocket.send(p);
 					}
 					break;
-					
+				/*
 				// Si los pares son amigos se crea un objeto Connection.
 				case Utils.HELLO_FRIEND:
 					break;
 				// Si no son amigos:
 				case Utils.NO_FRIEND:
 					break;
-				/* Si es una petición se pasa al destino tal cual, O BIEN podría hacer que se comunicaran
-				 * sin pasar más por el servidor, por lo que:
-				 */// TODO: el caso default podría sobrar.
+				// Si es una petición se pasa al destino tal cual, O BIEN podría hacer que se comunicaran
+				// sin pasar más por el servidor, por lo que:
+				// TODO: el caso default podría sobrar.
 				default:
 					break;
+				*/
 				}
-				
 			} catch (IOException e) {
 				e.printStackTrace();
-		}
+			}
 		}
 	}
 	
