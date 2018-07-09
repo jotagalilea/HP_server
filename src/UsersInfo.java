@@ -5,7 +5,7 @@ import java.util.HashMap;
 /**
  * Created by Julio on 02/06/2018.
  *
- * Clase que representa el dispositivo de un usuario.
+ * Clase que aglutina las direcciones y puertos de cada usuario.
  */
 
 
@@ -73,14 +73,36 @@ public class UsersInfo {
 	}
 	
 	
-	
+	/**
+	 * Devuelve la dirección y el puerto del usuario con nombre user.
+	 * 
+	 * @param user
+	 * @return
+	 */
+	// TODO: Leer:
+	/* pensar cómo puedo solucionar el timeout para obtener la info correcta de un
+	 * usuario destino que se conectó hace tiempo. Debo evitar que la info del móvil
+	 * de destino en su tabla NAT se pierda por TIMEOUT. Quizá podría hacer ping todo el rato.
+	 */
 	public Pair<InetAddress, Integer> getUserInfo(String user){
 		if (!this.existsUserWithName(user))
 			return null;
 		return this.usersMap.get(user);
 	}
-
-
+	
+	
+	
+	/**
+	 * Método que cargará de la base de datos los usuarios que se hayan conectado anteriormente.
+	 * 
+	 * En caso de que la base de datos esté vacía no hará nada.
+	 */
+	public void loadUsers(){
+		// TODO
+	}
+	
+	
+	
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj)
