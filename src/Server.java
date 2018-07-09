@@ -3,9 +3,7 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
-import java.net.InetSocketAddress;
 import java.net.SocketException;
-import java.util.ArrayList;
 
 
 /**
@@ -19,10 +17,10 @@ public class Server {
 	
 	private static Server server = null;
 	private DatagramSocket listenSocket;
-	private DatagramSocket outSocket;
+	//private DatagramSocket outSocket;
 	private final int listenPort = 61516;
 	
-	private ArrayList<Connection> activeConnections;
+	//private ArrayList<Connection> activeConnections;
 	private UsersInfo usersInfo;
 	
 	
@@ -35,18 +33,15 @@ public class Server {
 	
 	
 	private Server(){
-		activeConnections = new ArrayList<>();
+		//activeConnections = new ArrayList<>();
 		usersInfo = new UsersInfo();
 		try {
 			listenSocket = new DatagramSocket(listenPort);
 			listenSocket.setReuseAddress(true);
-			outSocket = new DatagramSocket();
-			outSocket.setReuseAddress(true);
+			//outSocket = new DatagramSocket();
+			//outSocket.setReuseAddress(true);
 			// TODO: ¿También se necesita una cola de espera? ¿O lanzo todos los hilos que se puedan?
-			//TODO: Necesito un hilo que espere a conexiones entrantes.
-			/* POR DEFECTO, TODOS LOS USUARIOS QUE SE CONECTAN SON SIRVIENTES, ya que
-			 * se conectan al servidor en cuanto inician la app.
-			 */
+			// TODO: Necesito un hilo que espere a conexiones entrantes.
 			
 			new Thread(new Runnable(){
 				@Override
@@ -68,13 +63,11 @@ public class Server {
 			DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
 			try {
 				listenSocket.receive(packet);
-				// TODO: REVISAR ESTE COMENTARIO, puede que no sea necesario enviar el número de bytes del nombre.
 				/* Cuando un usuario comienza una conexión al servidor SIEMPRE debe enviar su identificador
 				 * (en el caso de nuestra app se envía simplemente el nombre de usuario) y el número de bytes
 				 * que ocupa. Este número de bytes están en buffer[0].
 				 */
 				
-				// TODO: Habrá que distinguir qué tipo de conexión hace el cliente.
 				byte type = buffer[0];
 				switch (type){
 				case Utils.SERVER_CONNECT:
@@ -111,7 +104,8 @@ public class Server {
 						byte[] info_for_origin = baos.toByteArray();
 						DatagramPacket to_origin = new DatagramPacket(info_for_origin, info_for_origin.length,
 								packet.getAddress(), packet.getPort());
-						outSocket.send(to_origin);
+						listenSocket.send(to_origin);
+						//outSocket.send(to_origin);
 						
 						// IP+puerto del origen se manda al destino.
 						ByteArrayOutputStream baos2 = new ByteArrayOutputStream();
@@ -120,7 +114,8 @@ public class Server {
 						byte[] info_for_destination = baos2.toByteArray();
 						DatagramPacket to_destination = new DatagramPacket(info_for_destination,
 								info_for_destination.length, destInfo.first, destInfo.second);
-						outSocket.send(to_destination);
+						listenSocket.send(to_destination);
+						//outSocket.send(to_destination);
 						
 						/*Pair<InetAddress, Integer> info = usersInfo.getUserInfo(friendName);
 						DatagramPacket outPack = new DatagramPacket(buffer, buffer.length, info.first, info.second);
@@ -131,7 +126,8 @@ public class Server {
 						byte[] refuseBuff = {Utils.NO_FRIEND};
 						DatagramPacket p = new DatagramPacket(refuseBuff, refuseBuff.length,
 								packet.getAddress(), packet.getPort());
-						outSocket.send(p);
+						//outSocket.send(p);
+						listenSocket.send(p);
 					}
 					break;
 				/*
@@ -155,14 +151,5 @@ public class Server {
 	}
 	
 	
-	private void createConnection(String client, String servant){
-		
-		//crear socket
-	}
-	
-	
-	public int getListenPort(){
-		return this.listenPort;
-	}
 	
 }

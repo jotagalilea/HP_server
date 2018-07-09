@@ -5,7 +5,7 @@ import java.util.HashMap;
 /**
  * Created by Julio on 02/06/2018.
  *
- * Clase que representa el dispositivo de un usuario.
+ * Clase que aglutina las direcciones y puertos de cada usuario.
  */
 
 
