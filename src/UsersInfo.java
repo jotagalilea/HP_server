@@ -11,8 +11,10 @@ import java.util.HashMap;
 
 public class UsersInfo {
 
-	// Nombre del usuario, dirección y puerto.
-	private HashMap<String, Pair<InetAddress, Integer>> usersMap;
+	/* Nombre del usuario, dirección y puertos. El primer puerto del par
+	 * corresponde al de la parte servidor y el segundo al de la parte cliente.
+	 */
+	private HashMap<String, Pair<InetAddress, Pair<Integer,Integer>>> usersMap;
 	
 	
 	public UsersInfo(){
@@ -22,15 +24,16 @@ public class UsersInfo {
 	
 	/**
 	 * Acción que añade un nuevo usuario a la colección.
-	 * Si ya existe un usuario con el mismo nombre el método no tiene efecto.
+	 * Si ya existe usuario entonces se actualiza la dirección y el puerto.
 	 * 
 	 * @param name
 	 * @param addr
-	 * @param port
+	 * @param servPort
+	 * @param cliPort
 	 */
-	public void addUser(String name, InetAddress addr, int port){
-		if (!usersMap.containsKey(name))
-			usersMap.put(name, new Pair<InetAddress, Integer>(addr, port));
+	public void addUser(String name, InetAddress addr, Integer servPort, Integer cliPort){
+		Pair<Integer, Integer> ports = new Pair<>(servPort, cliPort);
+		usersMap.put(name, new Pair<InetAddress, Pair<Integer,Integer>>(addr, ports));
 	}
 	
 	
@@ -40,10 +43,12 @@ public class UsersInfo {
 	 * 
 	 * @param name
 	 * @param addr
-	 * @param port
+	 * @param servPort
+	 * @param cliPort
 	 */
-	public void editUserInfo(String name, InetAddress addr, int port){
-		usersMap.replace(name, new Pair<InetAddress, Integer>(addr, port));
+	public void editUserInfo(String name, InetAddress addr, int servPort, int cliPort){
+		Pair<Integer, Integer> ports = new Pair<>(servPort, cliPort);
+		usersMap.replace(name, new Pair<InetAddress, Pair<Integer,Integer>>(addr, ports));
 	}
 	
 	
@@ -55,7 +60,7 @@ public class UsersInfo {
 	 */
 	public void editUserName(String old, String newName){
 		if (usersMap.containsKey(old)){
-			Pair<InetAddress, Integer> info = usersMap.get(old);
+			Pair<InetAddress, Pair<Integer,Integer>> info = usersMap.get(old);
 			usersMap.remove(old);
 			usersMap.put(newName, info);
 		}
@@ -84,7 +89,7 @@ public class UsersInfo {
 	 * usuario destino que se conectó hace tiempo. Debo evitar que la info del móvil
 	 * de destino en su tabla NAT se pierda por TIMEOUT. Quizá podría hacer ping todo el rato.
 	 */
-	public Pair<InetAddress, Integer> getUserInfo(String user){
+	public Pair<InetAddress, Pair<Integer,Integer>> getUserInfo(String user){
 		if (!this.existsUserWithName(user))
 			return null;
 		return this.usersMap.get(user);
