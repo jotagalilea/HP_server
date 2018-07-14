@@ -18,7 +18,7 @@ public class Server {
 	private static Server server = null;
 	private DatagramSocket listenSocket;
 	//private DatagramSocket outSocket;
-	private final int listenPort = 62001;
+	private final int listenPort = 61001;
 	
 	//private ArrayList<Connection> activeConnections;
 	private UsersInfo usersInfo;
@@ -75,13 +75,16 @@ public class Server {
 					byte nameLen = buffer[1];
 					String userName = new String(buffer).substring(2, 2+nameLen);
 					//User newUser = new User(userName, packet.getAddress(), packet.getPort());
-					Integer cliPort = null;
-					if (buffer[3+nameLen] == Utils.IS_CLIENT_SOCKET){
-						byte[] cliPortBuf = new byte[4];
-						System.arraycopy(buffer, nameLen+4, cliPortBuf, 0, cliPortBuf.length);
-						cliPort = Utils.byteArrayToInt(cliPortBuf);
+					//Integer cliPort = null;
+					if (buffer[2+nameLen] == Utils.IS_CLIENT_SOCKET){
+						usersInfo.addUser(userName, packet.getAddress(), null, packet.getPort());
+						//byte[] cliPortBuf = new byte[4];
+						//System.arraycopy(buffer, nameLen+4, cliPortBuf, 0, cliPortBuf.length);
+						//cliPort = Utils.byteArrayToInt(cliPortBuf);
 					}
-					usersInfo.addUser(userName, packet.getAddress(), packet.getPort(), cliPort);
+					//usersInfo.addUser(userName, packet.getAddress(), packet.getPort(), cliPort);
+					else
+						usersInfo.addUser(userName, packet.getAddress(), packet.getPort(), null);
 					break;
 					
 				/* Saludo a un dispositivo. Si está en la lista de usuarios conectados al servidor se pasarán
@@ -103,7 +106,7 @@ public class Server {
 						Pair<InetAddress, Pair<Integer,Integer>> destInfo = usersInfo.getUserInfo(friendName);
 						ByteArrayOutputStream baos = new ByteArrayOutputStream();
 						byte[] friendIP = destInfo.first.getAddress();
-						byte[] friendPort = Utils.intToByteArray(destInfo.second.second);
+						byte[] friendPort = Utils.intToByteArray(destInfo.second.first);
 						baos.write(friendIP);
 						baos.write(friendPort);
 						byte[] info_for_origin = baos.toByteArray();

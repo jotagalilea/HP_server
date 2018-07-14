@@ -32,8 +32,24 @@ public class UsersInfo {
 	 * @param cliPort
 	 */
 	public void addUser(String name, InetAddress addr, Integer servPort, Integer cliPort){
-		Pair<Integer, Integer> ports = new Pair<>(servPort, cliPort);
-		usersMap.put(name, new Pair<InetAddress, Pair<Integer,Integer>>(addr, ports));
+		Pair<Integer, Integer> ports = null;
+		if (cliPort == null){
+			Integer oldCliPort = null;
+			try{
+				oldCliPort = usersMap.get(name).second.second;
+			} catch (NullPointerException e){}
+			ports = new Pair<>(servPort, oldCliPort);
+		}
+		if (servPort == null){
+			Integer oldServPort = null;
+			try{
+				oldServPort = usersMap.get(name).second.first;
+			} catch (NullPointerException e){}
+			ports = new Pair<>(oldServPort, cliPort);
+		}
+		
+		Pair<InetAddress, Pair<Integer,Integer>> info = new Pair<>(addr, ports);
+		usersMap.put(name, info);
 	}
 	
 	
