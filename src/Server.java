@@ -126,7 +126,7 @@ public class Server {
 						baos2.write(Utils.intToByteArray(packet.getPort()));
 						byte[] info_for_destination = baos2.toByteArray();
 						DatagramPacket to_destination = new DatagramPacket(info_for_destination,
-								info_for_destination.length, destInfo.first, destInfo.second.second);
+								info_for_destination.length, destInfo.first, destInfo.second.first);
 						listenSocket.send(to_destination);
 						//outSocket.send(to_destination);
 						
