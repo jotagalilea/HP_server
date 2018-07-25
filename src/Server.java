@@ -18,7 +18,7 @@ public class Server {
 	private static Server server = null;
 	private DatagramSocket listenSocket;
 	//private DatagramSocket outSocket;
-	private final int listenPort = 61001;
+	private final int listenPort = 52955;
 	
 	//private ArrayList<Connection> activeConnections;
 	private UsersInfo usersInfo;
@@ -41,7 +41,7 @@ public class Server {
 			//outSocket = new DatagramSocket();
 			//outSocket.setReuseAddress(true);
 			// TODO: ¿También se necesita una cola de espera? ¿O lanzo todos los hilos que se puedan?
-			// TODO: Necesito un hilo que espere a conexiones entrantes.
+			// TODO: Necesito que se lance un hilo cada vez que llegue una conexión.
 			
 			new Thread(new Runnable(){
 				@Override
@@ -74,15 +74,10 @@ public class Server {
 					// Registro del usuario en el Servidor en memoria.
 					byte nameLen = buffer[1];
 					String userName = new String(buffer).substring(2, 2+nameLen);
-					//User newUser = new User(userName, packet.getAddress(), packet.getPort());
-					//Integer cliPort = null;
+					
 					if (buffer[2+nameLen] == Utils.IS_CLIENT_SOCKET){
 						usersInfo.addUser(userName, packet.getAddress(), null, packet.getPort());
-						//byte[] cliPortBuf = new byte[4];
-						//System.arraycopy(buffer, nameLen+4, cliPortBuf, 0, cliPortBuf.length);
-						//cliPort = Utils.byteArrayToInt(cliPortBuf);
 					}
-					//usersInfo.addUser(userName, packet.getAddress(), packet.getPort(), cliPort);
 					else
 						usersInfo.addUser(userName, packet.getAddress(), packet.getPort(), null);
 					break;
@@ -129,10 +124,6 @@ public class Server {
 								info_for_destination.length, destInfo.first, destInfo.second.first);
 						listenSocket.send(to_destination);
 						//outSocket.send(to_destination);
-						
-						/*Pair<InetAddress, Integer> info = usersInfo.getUserInfo(friendName);
-						DatagramPacket outPack = new DatagramPacket(buffer, buffer.length, info.first, info.second);
-						outSocket.send(outPack);*/
 					}
 					else{
 						// Si no, se devuelve respuesta negativa al origen con NO_FRIEND.
@@ -143,19 +134,6 @@ public class Server {
 						listenSocket.send(p);
 					}
 					break;
-				/*
-				// Si los pares son amigos se crea un objeto Connection.
-				case Utils.HELLO_FRIEND:
-					break;
-				// Si no son amigos:
-				case Utils.NO_FRIEND:
-					break;
-				// Si es una petición se pasa al destino tal cual, O BIEN podría hacer que se comunicaran
-				// sin pasar más por el servidor, por lo que:
-				// TODO: el caso default podría sobrar.
-				default:
-					break;
-				*/
 				}
 			} catch (IOException e) {
 				e.printStackTrace();

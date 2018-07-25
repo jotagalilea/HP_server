@@ -11,7 +11,7 @@ import java.util.HashMap;
 
 public class UsersInfo {
 
-	/* Nombre del usuario, dirección y puertos. El primer puerto del par
+	/* Nombre del usuario, dirección y puertos. El primer puerto del par interno
 	 * corresponde al de la parte servidor y el segundo al de la parte cliente.
 	 */
 	private HashMap<String, Pair<InetAddress, Pair<Integer,Integer>>> usersMap;
