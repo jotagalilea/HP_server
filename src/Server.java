@@ -18,7 +18,7 @@ public class Server {
 	private static Server server = null;
 	private DatagramSocket listenSocket;
 	//private DatagramSocket outSocket;
-	private final int listenPort = 52955;
+	private final int listenPort = ;
 	
 	//private ArrayList<Connection> activeConnections;
 	private UsersInfo usersInfo;
