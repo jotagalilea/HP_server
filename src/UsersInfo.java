@@ -142,5 +142,19 @@ public class UsersInfo {
 	}
 	
 	
+	/**
+	 * Devuelve la dirección de un usuario. Si no existe el usuario se devuelve null.
+	 * 
+	 * @param name
+	 * @return Dirección del usuario.
+	 */
+	public InetAddress getUserAddr(String name){
+		Pair<InetAddress, Pair<Integer,Integer>> pair = this.getUserInfo(name);
+		if (pair == null)
+			return null;
+		else
+			return pair.first;
+	}
+	
 	
 }

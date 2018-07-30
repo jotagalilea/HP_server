@@ -76,10 +76,26 @@ public class Server {
 					String userName = new String(buffer).substring(2, 2+nameLen);
 					
 					if (buffer[2+nameLen] == Utils.IS_CLIENT_SOCKET){
-						usersInfo.addUser(userName, packet.getAddress(), null, packet.getPort());
+						/* Si el usuario no está registrado se guarda la dirección del paquete recibido
+						 * para tener al menos eso. Si ya está registrado se guarda la IP previamente
+						 * recibida cuando se conectó el socket de la parte servidor.
+						 */
+						if (!usersInfo.existsUserWithName(userName))
+							usersInfo.addUser(userName, packet.getAddress(), null, packet.getPort());
+						else {
+							InetAddress addr = usersInfo.getUserAddr(userName);
+							usersInfo.addUser(userName, addr, null, packet.getPort());
+						}
 					}
-					else
+					else {
+						/* Si se conecta el socket de la parte Servidor (es decir, la primera parte
+						 * que se conecta) se está recibiendo la IP de dicha parte. La IP son 4 bytes.
+						 */
+						String addrString = new String(buffer).substring(3+nameLen, 7+nameLen);
+						//InetAddress addr = InetAddress.getByName(addrString);
 						usersInfo.addUser(userName, packet.getAddress(), packet.getPort(), null);
+						//usersInfo.addUser(userName, addr, packet.getPort(), null);
+					}
 					break;
 					
 				/* Saludo a un dispositivo. Si está en la lista de usuarios conectados al servidor se pasarán
