@@ -18,7 +18,7 @@ public class Server {
 	private static Server server = null;
 	private DatagramSocket listenSocket;
 	//private DatagramSocket outSocket;
-	private final int listenPort = ;
+	private final int listenPort = 33955;
 	
 	//private ArrayList<Connection> activeConnections;
 	private UsersInfo usersInfo;
@@ -92,9 +92,12 @@ public class Server {
 						 * que se conecta) se está recibiendo la IP de dicha parte. La IP son 4 bytes.
 						 */
 						String addrString = new String(buffer).substring(3+nameLen, 7+nameLen);
-						//InetAddress addr = InetAddress.getByName(addrString);
-						usersInfo.addUser(userName, packet.getAddress(), packet.getPort(), null);
-						//usersInfo.addUser(userName, addr, packet.getPort(), null);
+						if (addrString.charAt(0) == Utils.TAKE_IP_FROM_PACKET)
+							usersInfo.addUser(userName, packet.getAddress(), packet.getPort(), null);
+						else {
+							InetAddress addr = InetAddress.getByName(addrString);
+							usersInfo.addUser(userName, addr, packet.getPort(), null);
+						}
 					}
 					break;
 					
