@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
@@ -105,7 +106,7 @@ public class Server {
 						 * que se conecta) se está recibiendo la IP de dicha parte. La IP son 4 bytes.
 						 */
 						String addrString = new String(buffer).substring(3+nameLen, 7+nameLen);
-						if (addrString.charAt(0) == Utils.TAKE_IP_FROM_PACKET)
+						if (addrString.charAt(0) == Utils.TAKE_IP_FROM_HEADER)
 							//usersInfo.addUser(userName, packet.getAddress(), packet.getPort(), null);
 							usersInfo.addUser(userName, socket.getInetAddress(), socket.getPort(), null);
 						else {
@@ -138,29 +139,45 @@ public class Server {
 						byte[] friendPort = Utils.intToByteArray(destInfo.second.first);
 						baos.write(friendIP);
 						baos.write(friendPort);
-						byte[] info_for_origin = baos.toByteArray();
-						/*DatagramPacket to_origin = new DatagramPacket(info_for_origin, info_for_origin.length,
+						
+						DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
+						baos.writeTo(dos);
+						dos.close();
+						
+						/*byte[] info_for_origin = baos.toByteArray();
+						DatagramPacket to_origin = new DatagramPacket(info_for_origin, info_for_origin.length,
 								packet.getAddress(), packet.getPort());*/
 						//listenSocket.send(to_origin);
 						
 						// Se envía primero al proveedor (destino) el aviso de una nueva petición:
-						byte[] req = {Utils.NEW_REQ};
+						InetSocketAddress destAddr = new InetSocketAddress(destInfo.first, destInfo.second.first);
+						socket.connect(destAddr);
+						dos = new DataOutputStream(socket.getOutputStream());
+						dos.writeByte(Utils.NEW_REQ);
+						/*byte[] req = {Utils.NEW_REQ};
 						DatagramPacket p = new DatagramPacket(req, req.length, destInfo.first, destInfo.second.first);
-						//listenSocket.send(p);
+						listenSocket.send(p);*/
 						
 						// IP+puerto del origen se manda al destino.
 						ByteArrayOutputStream baos2 = new ByteArrayOutputStream();
-						//baos2.write(packet.getAddress().getAddress());
-						//baos2.write(Utils.intToByteArray(packet.getPort()));
+						baos2.write(socket.getInetAddress().getAddress());
+						baos2.write(Utils.intToByteArray(socket.getPort()));
+						baos2.writeTo(dos);
+						dos.close();
+						/*baos2.write(packet.getAddress().getAddress());
+						baos2.write(Utils.intToByteArray(packet.getPort()));
 						byte[] info_for_destination = baos2.toByteArray();
-						/*DatagramPacket to_destination = new DatagramPacket(info_for_destination,
+						DatagramPacket to_destination = new DatagramPacket(info_for_destination,
 								info_for_destination.length, destInfo.first, destInfo.second.first);*/
 						//listenSocket.send(to_destination);
 					}
 					else{
 						// Si no, se devuelve respuesta negativa al origen con NO_FRIEND.
-						byte[] refuseBuff = {Utils.NO_FRIEND};
-						/*DatagramPacket p = new DatagramPacket(refuseBuff, refuseBuff.length,
+						DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
+						dos.writeByte(Utils.NO_FRIEND);
+						dos.close();
+						/*byte[] refuseBuff = {Utils.NO_FRIEND};
+						DatagramPacket p = new DatagramPacket(refuseBuff, refuseBuff.length,
 								packet.getAddress(), packet.getPort());*/
 						//outSocket.send(p);
 						//listenSocket.send(p);
