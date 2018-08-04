@@ -66,16 +66,18 @@ public class Server {
 	private void listen() {
 		while (true){
 			byte[] buffer = new byte[Utils.MAX_BUFF_SIZE];
-			DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
+			//DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
 			try {
 				//listenSocket.receive(packet);
 				socket = listenSocket.accept();
+				socket.setReuseAddress(true);
 				/* Cuando un usuario comienza una conexión al servidor SIEMPRE debe enviar su identificador
 				 * (en el caso de nuestra app se envía simplemente el nombre de usuario) y el número de bytes
 				 * que ocupa. Este número de bytes están en buffer[0].
 				 */
 				DataInputStream dis = new DataInputStream(socket.getInputStream());
-				dis.readFully(buffer, 0, buffer.length);
+				int bufSize = dis.readInt();
+				dis.readFully(buffer, 0, bufSize);
 				////////////
 				byte type = buffer[0];
 				switch (type){
@@ -90,10 +92,12 @@ public class Server {
 						 * recibida cuando se conectó el socket de la parte servidor.
 						 */
 						if (!usersInfo.existsUserWithName(userName))
-							usersInfo.addUser(userName, packet.getAddress(), null, packet.getPort());
+							//usersInfo.addUser(userName, packet.getAddress(), null, packet.getPort());
+							usersInfo.addUser(userName, socket.getInetAddress(), null, socket.getPort());
 						else {
 							InetAddress addr = usersInfo.getUserAddr(userName);
-							usersInfo.addUser(userName, addr, null, packet.getPort());
+							//usersInfo.addUser(userName, addr, null, packet.getPort());
+							usersInfo.addUser(userName, addr, null, socket.getPort());
 						}
 					}
 					else {
@@ -102,10 +106,12 @@ public class Server {
 						 */
 						String addrString = new String(buffer).substring(3+nameLen, 7+nameLen);
 						if (addrString.charAt(0) == Utils.TAKE_IP_FROM_PACKET)
-							usersInfo.addUser(userName, packet.getAddress(), packet.getPort(), null);
+							//usersInfo.addUser(userName, packet.getAddress(), packet.getPort(), null);
+							usersInfo.addUser(userName, socket.getInetAddress(), socket.getPort(), null);
 						else {
 							InetAddress addr = InetAddress.getByName(addrString);
-							usersInfo.addUser(userName, addr, packet.getPort(), null);
+							//usersInfo.addUser(userName, addr, packet.getPort(), null);
+							usersInfo.addUser(userName, addr, socket.getPort(), null);
 						}
 					}
 					break;
@@ -133,33 +139,31 @@ public class Server {
 						baos.write(friendIP);
 						baos.write(friendPort);
 						byte[] info_for_origin = baos.toByteArray();
-						DatagramPacket to_origin = new DatagramPacket(info_for_origin, info_for_origin.length,
-								packet.getAddress(), packet.getPort());
-						listenSocket.send(to_origin);
-						//outSocket.send(to_origin);
+						/*DatagramPacket to_origin = new DatagramPacket(info_for_origin, info_for_origin.length,
+								packet.getAddress(), packet.getPort());*/
+						//listenSocket.send(to_origin);
 						
 						// Se envía primero al proveedor (destino) el aviso de una nueva petición:
 						byte[] req = {Utils.NEW_REQ};
 						DatagramPacket p = new DatagramPacket(req, req.length, destInfo.first, destInfo.second.first);
-						listenSocket.send(p);
+						//listenSocket.send(p);
 						
 						// IP+puerto del origen se manda al destino.
 						ByteArrayOutputStream baos2 = new ByteArrayOutputStream();
-						baos2.write(packet.getAddress().getAddress());
-						baos2.write(Utils.intToByteArray(packet.getPort()));
+						//baos2.write(packet.getAddress().getAddress());
+						//baos2.write(Utils.intToByteArray(packet.getPort()));
 						byte[] info_for_destination = baos2.toByteArray();
-						DatagramPacket to_destination = new DatagramPacket(info_for_destination,
-								info_for_destination.length, destInfo.first, destInfo.second.first);
-						listenSocket.send(to_destination);
-						//outSocket.send(to_destination);
+						/*DatagramPacket to_destination = new DatagramPacket(info_for_destination,
+								info_for_destination.length, destInfo.first, destInfo.second.first);*/
+						//listenSocket.send(to_destination);
 					}
 					else{
 						// Si no, se devuelve respuesta negativa al origen con NO_FRIEND.
 						byte[] refuseBuff = {Utils.NO_FRIEND};
-						DatagramPacket p = new DatagramPacket(refuseBuff, refuseBuff.length,
-								packet.getAddress(), packet.getPort());
+						/*DatagramPacket p = new DatagramPacket(refuseBuff, refuseBuff.length,
+								packet.getAddress(), packet.getPort());*/
 						//outSocket.send(p);
-						listenSocket.send(p);
+						//listenSocket.send(p);
 					}
 					break;
 				}
