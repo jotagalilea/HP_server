@@ -71,7 +71,6 @@ public class Server {
 			try {
 				//listenSocket.receive(packet);
 				socket = listenSocket.accept();
-				socket.setReuseAddress(true);
 				/* Cuando un usuario comienza una conexión al servidor SIEMPRE debe enviar su identificador
 				 * (en el caso de nuestra app se envía simplemente el nombre de usuario) y el número de bytes
 				 * que ocupa. Este número de bytes están en buffer[0].
@@ -94,11 +93,11 @@ public class Server {
 						 */
 						if (!usersInfo.existsUserWithName(userName))
 							//usersInfo.addUser(userName, packet.getAddress(), null, packet.getPort());
-							usersInfo.addUser(userName, socket.getInetAddress(), null, socket.getPort());
+							usersInfo.addUser(userName, socket.getInetAddress(), null, socket.getPort(), socket);
 						else {
 							InetAddress addr = usersInfo.getUserAddr(userName);
 							//usersInfo.addUser(userName, addr, null, packet.getPort());
-							usersInfo.addUser(userName, addr, null, socket.getPort());
+							usersInfo.addUser(userName, addr, null, socket.getPort(), socket);
 						}
 					}
 					else {
@@ -108,11 +107,11 @@ public class Server {
 						String addrString = new String(buffer).substring(3+nameLen, 7+nameLen);
 						if (addrString.charAt(0) == Utils.TAKE_IP_FROM_HEADER)
 							//usersInfo.addUser(userName, packet.getAddress(), packet.getPort(), null);
-							usersInfo.addUser(userName, socket.getInetAddress(), socket.getPort(), null);
+							usersInfo.addUser(userName, socket.getInetAddress(), socket.getPort(), null, socket);
 						else {
 							InetAddress addr = InetAddress.getByName(addrString);
 							//usersInfo.addUser(userName, addr, packet.getPort(), null);
-							usersInfo.addUser(userName, addr, socket.getPort(), null);
+							usersInfo.addUser(userName, addr, socket.getPort(), null, socket);
 						}
 					}
 					break;
