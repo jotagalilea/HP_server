@@ -1,5 +1,4 @@
 import java.net.InetAddress;
-import java.net.Socket;
 import java.util.HashMap;
 
 
@@ -16,8 +15,6 @@ public class UsersInfo {
 	 * corresponde al de la parte servidor y el segundo al de la parte cliente.
 	 */
 	private HashMap<String, Pair<InetAddress, Pair<Integer,Integer>>> usersMap;
-	private HashMap<String, Pair<Socket, Socket>> usersSockets;
-	// TODO: Sólo está implementado el uso de usersSockets en el addUser(). Falta tocar el resto de métodos.
 	
 	
 	public UsersInfo(){
@@ -34,10 +31,8 @@ public class UsersInfo {
 	 * @param servPort
 	 * @param cliPort
 	 */
-	public void addUser(String name, InetAddress addr, Integer servPort, Integer cliPort, Socket sock){
+	public void addUser(String name, InetAddress addr, Integer servPort, Integer cliPort){
 		Pair<Integer, Integer> ports = null;
-		boolean isClient = false;
-		
 		if (cliPort == null){
 			Integer oldCliPort = null;
 			try{
@@ -46,7 +41,6 @@ public class UsersInfo {
 			ports = new Pair<>(servPort, oldCliPort);
 		}
 		if (servPort == null){
-			isClient = true;
 			Integer oldServPort = null;
 			try{
 				oldServPort = usersMap.get(name).second.first;
@@ -56,14 +50,6 @@ public class UsersInfo {
 		
 		Pair<InetAddress, Pair<Integer,Integer>> info = new Pair<>(addr, ports);
 		usersMap.put(name, info);
-		
-		
-		Pair<Socket, Socket> socks;
-		if (isClient)
-			socks = new Pair<>(null, sock);
-		else
-			socks = new Pair<>(sock, null);
-		usersSockets.put(name, socks);
 	}
 	
 	
