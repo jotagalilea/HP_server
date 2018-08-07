@@ -5,7 +5,7 @@ public class Utils {
 	/**
 	 * Longitud máxima del buffer de datos que se manejará.
 	 */
-	public static final int MAX_BUFF_SIZE = 1024;
+	public static final int MAX_BUFF_SIZE = 256;
 	/**
 	 * Cuando el servidor recibe una petición tiene que comprobar si procede de un amigo.
 	 * En caso afirmativo envía de vuelta HELLO_FRIEND. En caso negativo envía NO_FRIEND.
@@ -29,6 +29,7 @@ public class Utils {
 	 */
 	public static final byte SERVER_CONNECT = 10;
 	public static final byte IS_CLIENT_SOCKET = 11;
+	public static final byte CLOSE_SOCKET = 12;
 	public static final byte TAKE_IP_FROM_HEADER = 0;
 	
 	
