@@ -3,6 +3,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
@@ -26,7 +27,7 @@ public class Server {
 	private ServerSocket listenSocket;
 	private Socket socket;
 	//private DatagramSocket outSocket;
-	private final int listenPort = 33955;
+	private final int listenPort = ;
 	
 	//private ArrayList<Connection> activeConnections;
 	private UsersInfo usersInfo;
@@ -180,14 +181,16 @@ public class Server {
 						InetSocketAddress destAddr = new InetSocketAddress(destInfo.first, destInfo.second.first);
 						Socket sock2servPart = clientManager.getUserSocket(friendName, true);
 						//socket.connect(destAddr);
-						DataOutputStream dos2Serv = (DataOutputStream) sock2servPart.getOutputStream();
-						dos2Serv.writeByte(Utils.NEW_REQ);
+						OutputStream os2Serv = sock2servPart.getOutputStream();
+						byte[] newreq = {Utils.NEW_REQ};
+						os2Serv.write(newreq);
+						//writeByte(Utils.NEW_REQ);
 						
 						// IP+puerto del origen se manda al destino.
 						ByteArrayOutputStream baos2 = new ByteArrayOutputStream();
 						baos2.write(sock2servPart.getInetAddress().getAddress());
 						baos2.write(Utils.intToByteArray(socket.getPort()));
-						baos2.writeTo(dos2Serv);
+						baos2.writeTo(os2Serv);
 					}
 					else{
 						// Si no, se devuelve respuesta negativa al origen con NO_FRIEND.
