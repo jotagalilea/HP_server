@@ -178,7 +178,7 @@ public class Server {
 						baos.writeTo(dos);
 						
 						// Se envía primero al proveedor (destino) el aviso de una nueva petición:
-						InetSocketAddress destAddr = new InetSocketAddress(destInfo.first, destInfo.second.first);
+						InetSocketAddress destAddr = new InetSocketAddress(destInfo.first, destInfo.second.second);
 						Socket sock2servPart = clientManager.getUserSocket(friendName, true);
 						//socket.connect(destAddr);
 						OutputStream os2Serv = sock2servPart.getOutputStream();
@@ -186,7 +186,7 @@ public class Server {
 						os2Serv.write(newreq);
 						//writeByte(Utils.NEW_REQ);
 						
-						// IP+puerto del origen se manda al destino.
+						// Luego se le envía IP+puerto del origen al destino.
 						ByteArrayOutputStream baos2 = new ByteArrayOutputStream();
 						baos2.write(sock2servPart.getInetAddress().getAddress());
 						baos2.write(Utils.intToByteArray(socket.getPort()));
@@ -201,9 +201,10 @@ public class Server {
 					
 				case Utils.CLOSE_SOCKET:
 					// El cliente va a cerrar la conexión, así que aquí también hay que cerrarla.
-					// TODO:
+					s.close();
 					break;
 				}
+				System.out.println("Borrar este print");
 			}
 				
 		} catch (IOException e) {
