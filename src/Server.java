@@ -178,7 +178,7 @@ public class Server {
 						baos.writeTo(dos);
 						
 						// Se envía primero al proveedor (destino) el aviso de una nueva petición:
-						InetSocketAddress destAddr = new InetSocketAddress(destInfo.first, destInfo.second.second);
+						//InetSocketAddress destAddr = new InetSocketAddress(destInfo.first, destInfo.second.second);
 						Socket sock2servPart = clientManager.getUserSocket(friendName, true);
 						//socket.connect(destAddr);
 						OutputStream os2Serv = sock2servPart.getOutputStream();
