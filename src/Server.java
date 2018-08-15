@@ -144,7 +144,12 @@ public class Server {
 	
 	private void serveClient(Socket s, DataInputStream dis){
 		try {
-			while (true){
+			boolean exit = false;
+			//////////////////////////////////////////////////////////////////
+			String friendName = "Manolito";
+			//////////////////////////////////////////////////////////////////
+			Socket sock2peer = null;
+			while (!exit){
 				byte[] buffer = new byte[Utils.MAX_BUFF_SIZE];
 				int bufSize = dis.readInt();
 				dis.readFully(buffer, 0, bufSize);
@@ -158,7 +163,7 @@ public class Server {
 					 * se devolverá al origen NO_FRIEND.
 					 */
 					byte friendNameLen = buffer[1];
-					String friendName = new String(buffer).substring(2, 2+friendNameLen);
+					friendName = new String(buffer).substring(2, 2+friendNameLen);
 					// Se comprueba si el usuario destino está conectado con su nombre:
 					if (usersInfo.existsUserWithName(friendName)){
 						/* En caso afirmativo:
@@ -201,7 +206,13 @@ public class Server {
 					
 				case Utils.CLOSE_SOCKET:
 					// El cliente va a cerrar la conexión, así que aquí también hay que cerrarla.
+					//Coge el socket del cliente, dile al cliente que intente conectarse al amigo y cierra el socket.
+					sock2peer = clientManager.getUserSocket(friendName, false);
+					OutputStream os = sock2peer.getOutputStream();
+					os.write(Utils.TRY_CONNECT);
 					s.close();
+					sock2peer.close();
+					exit = true;
 					break;
 				}
 				System.out.println("Borrar este print");
