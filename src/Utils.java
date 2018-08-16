@@ -29,7 +29,7 @@ public class Utils {
 	 */
 	public static final byte SERVER_CONNECT = 10;
 	public static final byte IS_CLIENT_SOCKET = 11;
-	public static final byte TAKE_IP_FROM_PACKET = 0;
+	public static final byte TAKE_IP_FROM_HEADER = 0;
 	
 	
 	

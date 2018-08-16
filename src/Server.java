@@ -92,7 +92,7 @@ public class Server {
 						 * que se conecta) se está recibiendo la IP de dicha parte. La IP son 4 bytes.
 						 */
 						String addrString = new String(buffer).substring(3+nameLen, 7+nameLen);
-						if (addrString.charAt(0) == Utils.TAKE_IP_FROM_PACKET)
+						if (addrString.charAt(0) == Utils.TAKE_IP_FROM_HEADER)
 							usersInfo.addUser(userName, packet.getAddress(), packet.getPort(), null);
 						else {
 							InetAddress addr = InetAddress.getByName(addrString);
