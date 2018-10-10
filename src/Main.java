@@ -4,6 +4,8 @@
  * Programa servidor que administra las conexiones entre los pares.
  */
 
+//TODO: Crear una pequeña interfaz gráfica para arrancarlo, pararlo y salir.
+
 public class Main {
 
 	public static void main(String[] args) {

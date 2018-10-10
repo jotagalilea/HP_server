@@ -1,8 +1,12 @@
 import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.net.SocketException;
 
 
@@ -16,9 +20,11 @@ import java.net.SocketException;
 public class Server {
 	
 	private static Server server = null;
-	private DatagramSocket listenSocket;
+	private DatagramSocket udpSocket;
+	private ServerSocket tcpListenSocket;
 	//private DatagramSocket outSocket;
-	private final int listenPort = ;
+	private final int udpPort = ;
+	private final int tcpPort = ;
 	
 	//private ArrayList<Connection> activeConnections;
 	private UsersInfo usersInfo;
@@ -36,8 +42,10 @@ public class Server {
 		//activeConnections = new ArrayList<>();
 		usersInfo = new UsersInfo();
 		try {
-			listenSocket = new DatagramSocket(listenPort);
-			listenSocket.setReuseAddress(true);
+			udpSocket = new DatagramSocket(udpPort);
+			udpSocket.setReuseAddress(true);
+			tcpListenSocket = new ServerSocket(tcpPort);
+			tcpListenSocket.setReuseAddress(true);
 			//outSocket = new DatagramSocket();
 			//outSocket.setReuseAddress(true);
 			// TODO: ¿También se necesita una cola de espera? ¿O lanzo todos los hilos que se puedan?
@@ -46,23 +54,29 @@ public class Server {
 			new Thread(new Runnable(){
 				@Override
 				public void run() {
-					listen();
+					udpListen();
+				}
+			}).start();
+			new Thread(new Runnable(){
+				@Override
+				public void run() {
+					tcpListen();
 				}
 			}).start();
 			
-		} catch (SocketException e) {
+		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
 	
 	
-	// TODO: Debería haber varios hilos ejecutando listen para atender varias peticiones a la vez.
-	private void listen() {
+	
+	private void udpListen() {
 		while (true){
 			byte[] buffer = new byte[Utils.MAX_BUFF_SIZE];
 			DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
 			try {
-				listenSocket.receive(packet);
+				udpSocket.receive(packet);
 				/* Cuando un usuario comienza una conexión al servidor SIEMPRE debe enviar su identificador
 				 * (en el caso de nuestra app se envía simplemente el nombre de usuario) y el número de bytes
 				 * que ocupa. Este número de bytes están en buffer[0].
@@ -91,10 +105,11 @@ public class Server {
 						/* Si se conecta el socket de la parte Servidor (es decir, la primera parte
 						 * que se conecta) se está recibiendo la IP de dicha parte. La IP son 4 bytes.
 						 */
-						String addrString = new String(buffer).substring(3+nameLen, 7+nameLen);
-						if (addrString.charAt(0) == Utils.TAKE_IP_FROM_HEADER)
+						//if (addrString.charAt(0) == Utils.TAKE_IP_FROM_HEADER)
+						if (buffer[nameLen+2] == Utils.TAKE_IP_FROM_HEADER)
 							usersInfo.addUser(userName, packet.getAddress(), packet.getPort(), null);
 						else {
+							String addrString = new String(buffer).substring(2+nameLen, 6+nameLen);
 							InetAddress addr = InetAddress.getByName(addrString);
 							usersInfo.addUser(userName, addr, packet.getPort(), null);
 						}
@@ -126,13 +141,14 @@ public class Server {
 						byte[] info_for_origin = baos.toByteArray();
 						DatagramPacket to_origin = new DatagramPacket(info_for_origin, info_for_origin.length,
 								packet.getAddress(), packet.getPort());
-						listenSocket.send(to_origin);
+						udpSocket.send(to_origin);
 						//outSocket.send(to_origin);
 						
 						// Se envía primero al proveedor (destino) el aviso de una nueva petición:
-						byte[] req = {Utils.NEW_REQ};
+						/*byte[] req = {Utils.NEW_REQ};
 						DatagramPacket p = new DatagramPacket(req, req.length, destInfo.first, destInfo.second.first);
 						listenSocket.send(p);
+						*/
 						
 						// IP+puerto del origen se manda al destino.
 						ByteArrayOutputStream baos2 = new ByteArrayOutputStream();
@@ -160,6 +176,61 @@ public class Server {
 		}
 	}
 	
+	
+	
+	private void tcpListen(){
+		while (true){
+			try {
+				Socket sock = tcpListenSocket.accept();
+				DataInputStream dis = new DataInputStream(sock.getInputStream());
+				int buffSize = dis.readInt();
+				byte[] buffer = new byte[buffSize];
+				dis.readFully(buffer, 0, buffSize);
+				
+				switch (buffer[0]){
+				case (Utils.HELLO):
+					byte recipientNameSize = buffer[1];
+					int recipientEndIndex = 2+recipientNameSize;
+					String recipientName = new String(buffer).substring(2, recipientEndIndex);
+					String clientName = new String(buffer).substring(recipientEndIndex+1);
+					// TODO: COMPROBAR que se toman bien el nombre del CLIENTE y del DESTINATARIO.
+					// Mirar si está registrado. Si lo está => paso 4
+					if (usersInfo.existsUserWithName(recipientName)){
+						Pair<InetAddress, Pair<Integer,Integer>> recipientInfo = usersInfo.getUserInfo(recipientName);
+						InetAddress recipientAddr = recipientInfo.first;
+						int recipientPort = recipientInfo.second.first;
+
+						/* Habrá que mandar al destinatario el nombre, dirección y puerto tcp del cliente
+						 * que quiere iniciar la conexión.
+						 */
+						ByteArrayOutputStream baos = new ByteArrayOutputStream();
+						//baos.write(Utils.NEW_REQ);
+						//baos.write(clientName.length());
+						//baos.write(clientName.getBytes());
+						// De momento cojo la dirección del socket y no del stream.
+						baos.write(sock.getInetAddress().getAddress());
+						baos.write(Utils.intToByteArray(sock.getPort()));
+						byte[] buf2Recipient = baos.toByteArray();
+						
+						DatagramPacket dp = new DatagramPacket(buf2Recipient, 0, buf2Recipient.length,
+								recipientAddr, recipientPort);
+						udpSocket.send(dp);
+						/* TODO: Falta recibir CLOSE_SOCKET y cerrar la conexión TCP con el cliente,
+						 * indicándole que inicie conexión directa con el destinatario.
+						 */
+					}
+					else {
+						
+					}
+					break;
+				}
+				
+				
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+	}
 	
 	
 }
