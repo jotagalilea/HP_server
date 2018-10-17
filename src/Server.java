@@ -200,8 +200,10 @@ public class Server {
 						InetAddress recipientAddr = recipientInfo.first;
 						int recipientPort = recipientInfo.second.first;
 
+						// TODO:
 						/* Habrá que mandar al destinatario el nombre, dirección y puerto tcp del cliente
-						 * que quiere iniciar la conexión.
+						 * que quiere iniciar la conexión. DE MOMENTO NO SE MANDA PERO DEBERÍA HACERLO
+						 * EXACTAMENTE AQUÍ.
 						 */
 						ByteArrayOutputStream baos = new ByteArrayOutputStream();
 						//baos.write(Utils.NEW_REQ);
@@ -218,10 +220,23 @@ public class Server {
 						/* TODO: Falta recibir CLOSE_SOCKET y cerrar la conexión TCP con el cliente,
 						 * indicándole que inicie conexión directa con el destinatario.
 						 */
+						Socket auxTcpSocket = tcpListenSocket.accept();
+						DataInputStream auxdos = new DataInputStream(auxTcpSocket.getInputStream());
+						byte resp = auxdos.readByte();
+						if (resp == Utils.CLOSE_SOCKET){
+							DataOutputStream dos = new DataOutputStream(sock.getOutputStream());
+							// TODO: Es aquí donde hay que mandar la info del destinatario al cliente:
+							// La info se tratará en el connect_to_friend().
+							
+							dos.write(Utils.CLOSE_SOCKET);
+							dos.write(recipientAddr.getAddress());
+							dos.write(Utils.intToByteArray(recipientPort));
+							sock.close();
+							auxTcpSocket.close();
+						}
+						else {}
 					}
-					else {
-						
-					}
+					else {}
 					break;
 				}
 				
