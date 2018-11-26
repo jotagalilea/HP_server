@@ -120,7 +120,7 @@ public class Server {
 				 * a cada uno la dirección y el puerto usados por el contrario para el futuro intercambio, si no
 				 * se devolverá al origen NO_FRIEND.
 				 */
-				case Utils.HELLO:
+				/*case Utils.HELLO:
 					byte friendNameLen = buffer[1];
 					String friendName = new String(buffer).substring(2, 2+friendNameLen);
 					// Se comprueba si el usuario destino está conectado con su nombre:
@@ -132,7 +132,7 @@ public class Server {
 						 *    de forma directa entre ellos.
 						 */
 						// IP+puerto del destino se manda al origen.
-						Pair<InetAddress, Pair<Integer,Integer>> destInfo = usersInfo.getUserInfo(friendName);
+					/*	Pair<InetAddress, Pair<Integer,Integer>> destInfo = usersInfo.getUserInfo(friendName);
 						ByteArrayOutputStream baos = new ByteArrayOutputStream();
 						byte[] friendIP = destInfo.first.getAddress();
 						byte[] friendPort = Utils.intToByteArray(destInfo.second.first);
@@ -151,7 +151,7 @@ public class Server {
 						*/
 						
 						// IP+puerto del origen se manda al destino.
-						ByteArrayOutputStream baos2 = new ByteArrayOutputStream();
+					/*	ByteArrayOutputStream baos2 = new ByteArrayOutputStream();
 						baos2.write(packet.getAddress().getAddress());
 						baos2.write(Utils.intToByteArray(packet.getPort()));
 						byte[] info_for_destination = baos2.toByteArray();
@@ -169,6 +169,7 @@ public class Server {
 						listenSocket.send(p);
 					}
 					break;
+					*/
 				}
 			} catch (IOException e) {
 				e.printStackTrace();
@@ -192,17 +193,16 @@ public class Server {
 					byte recipientNameSize = buffer[1];
 					int recipientEndIndex = 2+recipientNameSize;
 					String recipientName = new String(buffer).substring(2, recipientEndIndex);
-					String clientName = new String(buffer).substring(recipientEndIndex+1);
-					// TODO: COMPROBAR que se toman bien el nombre del CLIENTE y del DESTINATARIO.
+					String clientName = new String(buffer).substring(recipientEndIndex);
 					// Mirar si está registrado. Si lo está => paso 4
 					if (usersInfo.existsUserWithName(recipientName)){
 						Pair<InetAddress, Pair<Integer,Integer>> recipientInfo = usersInfo.getUserInfo(recipientName);
 						InetAddress recipientAddr = recipientInfo.first;
-						int recipientPort = recipientInfo.second.first;
+						int recipientUDPport = recipientInfo.second.first;
 
 						// TODO:
 						/* Habrá que mandar al destinatario el nombre, dirección y puerto tcp del cliente
-						 * que quiere iniciar la conexión. DE MOMENTO NO SE MANDA PERO DEBERÍA HACERLO
+						 * que quiere iniciar la conexión. DE MOMENTO NO SE MANDA T0D0 PERO DEBERÍA HACERLO
 						 * EXACTAMENTE AQUÍ.
 						 */
 						ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -214,23 +214,32 @@ public class Server {
 						baos.write(Utils.intToByteArray(sock.getPort()));
 						byte[] buf2Recipient = baos.toByteArray();
 						
+						// Se manda al sirviente la información del cliente para que abra el agujero.
 						DatagramPacket dp = new DatagramPacket(buf2Recipient, 0, buf2Recipient.length,
-								recipientAddr, recipientPort);
+								recipientAddr, recipientUDPport);
 						udpSocket.send(dp);
+						
+						Socket auxTcpSocket = tcpListenSocket.accept();
+						int recipientTCPport = auxTcpSocket.getPort();
+						// TODO: El PASO 5 irá aquí:
+						
+						auxTcpSocket.close();
+						
 						/* TODO: Falta recibir CLOSE_SOCKET y cerrar la conexión TCP con el cliente,
 						 * indicándole que inicie conexión directa con el destinatario.
 						 */
-						Socket auxTcpSocket = tcpListenSocket.accept();
+						auxTcpSocket = tcpListenSocket.accept();
 						DataInputStream auxdos = new DataInputStream(auxTcpSocket.getInputStream());
 						byte resp = auxdos.readByte();
 						if (resp == Utils.CLOSE_SOCKET){
 							DataOutputStream dos = new DataOutputStream(sock.getOutputStream());
 							// TODO: Es aquí donde hay que mandar la info del destinatario al cliente:
 							// La info se tratará en el connect_to_friend().
-							
-							dos.write(Utils.CLOSE_SOCKET);
-							dos.write(recipientAddr.getAddress());
-							dos.write(Utils.intToByteArray(recipientPort));
+							ByteArrayOutputStream baos4client = new ByteArrayOutputStream(9);
+							baos4client.write(Utils.CLOSE_SOCKET);
+							baos4client.write(recipientAddr.getAddress());
+							baos4client.write(Utils.intToByteArray(recipientTCPport));
+							baos4client.writeTo(dos);
 							sock.close();
 							auxTcpSocket.close();
 						}
