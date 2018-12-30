@@ -28,6 +28,7 @@ public class Server {
 	
 	//private ArrayList<Connection> activeConnections;
 	private UsersInfo usersInfo;
+	private ClientManager clientManager;
 	
 	
 	
@@ -41,6 +42,7 @@ public class Server {
 	private Server(){
 		//activeConnections = new ArrayList<>();
 		usersInfo = new UsersInfo();
+		clientManager = ClientManager.getInstance();
 		try {
 			udpSocket = new DatagramSocket(udpPort);
 			udpSocket.setReuseAddress(true);
@@ -194,6 +196,7 @@ public class Server {
 					int recipientEndIndex = 2+recipientNameSize;
 					String recipientName = new String(buffer).substring(2, recipientEndIndex);
 					String clientName = new String(buffer).substring(recipientEndIndex);
+					clientManager.addClientSocket(clientName, sock, false);
 					// Mirar si está registrado. Si lo está => paso 4
 					if (usersInfo.existsUserWithName(recipientName)){
 						Pair<InetAddress, Pair<Integer,Integer>> recipientInfo = usersInfo.getUserInfo(recipientName);
@@ -223,12 +226,13 @@ public class Server {
 						int recipientTCPport = auxTcpSocket.getPort();
 						// TODO: El PASO 5 irá aquí:
 						
-						auxTcpSocket.close();
+						clientManager.addClientSocket(recipientName, auxTcpSocket, true);
+						//auxTcpSocket.close();
 						
 						/* TODO: Falta recibir CLOSE_SOCKET y cerrar la conexión TCP con el cliente,
 						 * indicándole que inicie conexión directa con el destinatario.
 						 */
-						auxTcpSocket = tcpListenSocket.accept();
+						//auxTcpSocket = tcpListenSocket.accept();
 						DataInputStream auxdos = new DataInputStream(auxTcpSocket.getInputStream());
 						byte resp = auxdos.readByte();
 						if (resp == Utils.CLOSE_SOCKET){
@@ -240,8 +244,8 @@ public class Server {
 							baos4client.write(recipientAddr.getAddress());
 							baos4client.write(Utils.intToByteArray(recipientTCPport));
 							baos4client.writeTo(dos);
-							sock.close();
-							auxTcpSocket.close();
+							//sock.close();
+							//auxTcpSocket.close();
 						}
 						else {}
 					}
